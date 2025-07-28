@@ -2291,7 +2291,7 @@ w<sdf version='1.9'>
           <pose>0 0 0.02 0.04 0 0</pose>
           <geometry>
             <mesh>
-              <uri>file:///home/aditya/BITS_ERC_ROBOT/src/Gazebo_world/models/Casual female/meshes/casual_female.dae</uri>
+              <uri>model://Casual_female/meshes/casual_female.dae</uri>
             </mesh>
           </geometry>
         </visual>
