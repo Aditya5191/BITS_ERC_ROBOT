@@ -1,0 +1,33 @@
+# ROS 2 build and install
+build/
+install/
+log/
+
+# Colcon build artifacts
+.colcon_cd_source/
+.colcon_install_layout
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+.directory
+.Trash-*
+
+# Gazebo specific
+*.pdb
+*.osgt
+*.osgtb
+*.bak
+
+# Logs
