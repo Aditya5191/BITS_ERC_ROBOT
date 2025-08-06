@@ -27,11 +27,10 @@ source ~/.bashrc
 # To Test the world
 
 ```bash
-cd src/Gazebo_world/worlds
+source install/setup.bash
+ros2 launch Gazebo_world gz_disp.launch.py
 ```
-```bash
-gz sim world_fixed.sdf
-```
+
 - Note : You will see errors related to some pngs not loaded.. but they are atually loaded and are visible in the simulation. If you cant see the simulation then the model resource path you set is wrong. you can ignore the errors for png not loaded.
 
 ## Building

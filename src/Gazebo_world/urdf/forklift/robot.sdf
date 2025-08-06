@@ -85,7 +85,7 @@
     
 
     <!-- NavSatSensor Link (GPS) -->
-    <link name="gps_link">
+    <link name="gps_link">a
       <pose>0 0 1.2 0 0 0</pose>
       <inertial>
         <mass>0.01</mass>

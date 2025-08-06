@@ -1,0 +1,360 @@
+<?xml version="1.0"?>
+<robot name="forklift" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Constants -->
+  <xacro:property name="PI" value="3.141592653589793" />
+  
+  <!-- Macro for wheels to avoid repetition -->
+  <xacro:macro name="wheel" params="name parent xyz rpy">
+    <link name="${name}_link">
+      <inertial>
+        <mass value="0.816749" />
+        <origin xyz="-2.21045e-15 -2.33218e-16 -0.0703848" />
+        <inertia ixx="0.0011595" ixy="0" ixz="0" 
+                 iyy="0.0011595" iyz="0" izz="0.00147113" />
+      </inertial>
+      
+      <visual>
+        <origin xyz="0 0 -0.1025" rpy="-1.5708 0 0" />
+        <geometry>
+          <mesh filename="file://$(find Gazebo_world)/meshes/wheel1.stl" />
+        </geometry>
+        <material name="wheel_color">
+          <color rgba="0.647059 0.647059 0.647059 1" />
+        </material>
+      </visual>
+      
+      <collision>
+        <origin xyz="0 0 -0.1025" rpy="-1.5708 0 0" />
+        <geometry>
+          <mesh filename="file://$(find Gazebo_world)/meshes/wheel1.stl" />
+        </geometry>
+      </collision>
+    </link>
+    
+    <joint name="${name}" type="revolute">
+      <parent link="${parent}"/>
+      <child link="${name}_link"/>
+      <origin xyz="${xyz}" rpy="${rpy}" />
+      <axis xyz="0 0 1" />
+      <limit effort="10" velocity="10" lower="-${PI}" upper="${PI}" />
+      <dynamics friction="0.0" damping="0.0" />
+    </joint>
+    
+    <!-- Gazebo properties for this wheel -->
+    <gazebo reference="${name}_link">
+      <material>Gazebo/Black</material>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+    </gazebo>
+  </xacro:macro>
+  
+  <!-- Base link -->
+  <link name="base_link">
+    <inertial>
+      <mass value="5000" />
+      <origin xyz="0.108872 -1.9711e-07 0.248955" />
+      <inertia ixx="743.717" ixy="7.94891e-06" ixz="-149.673" 
+               iyy="759.431" iyz="0.00072338" izz="282.509" />
+    </inertial>
+  </link>
+  
+  <!-- Body link -->
+  <link name="body">
+    <visual>
+      <origin xyz="-0.00799562 -3.71942e-17 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find Gazebo_world)/meshes/body1.stl" />
+      </geometry>
+      <material name="body_color">
+        <color rgba="0.615686 0.811765 0.929412 1" />
+      </material>
+    </visual>
+    
+    <collision>
+      <origin xyz="-0.00799562 -3.71942e-17 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="file://$(find Gazebo_world)/meshes/body1.stl" />
+      </geometry>
+    </collision>
+  </link>
+  
+  <joint name="base_to_body" type="fixed">
+    <parent link="base_link" />
+    <child link="body" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+  
+  <!-- Gazebo properties for body -->
+  <gazebo reference="body">
+    <material>Gazebo/Blue</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  
+  <!-- GPS sensor -->
+  <link name="gps_link">
+    <inertial>
+      <mass value="0.01" />
+      <origin xyz="0 0 0" />
+      <inertia ixx="0.00001" ixy="0" ixz="0" 
+               iyy="0.00001" iyz="0" izz="0.00001" />
+    </inertial>
+  </link>
+  
+  <joint name="gps_joint" type="fixed">
+    <parent link="body" />
+    <child link="gps_link" />
+    <origin xyz="0 0 1.2" rpy="0 0 0" />
+  </joint>
+  
+  <!-- Lidar frame -->
+  <link name="lidar_frame" />
+  
+  <joint name="lidar_joint" type="fixed">
+    <parent link="body" />
+    <child link="lidar_frame" />
+    <origin xyz="0.8 0 0.5" rpy="0 0 0" />
+  </joint>
+  
+  <!-- Camera -->
+  <link name="camera_link" />
+  
+  <!-- Fork mechanism -->
+  <link name="fork">
+    <inertial>
+      <mass value="17.7929" />
+      <origin xyz="0.0 0.0 -0.015" />
+      <inertia ixx="0.728234" ixy="-7.49898e-16" ixz="-0.00181882" 
+               iyy="0.978226" iyz="3.57919e-18" izz="1.70379" />
+    </inertial>
+    
+    <visual>
+      <origin xyz="-0.015 0.0 0.0" rpy="3.14159 0 0" />
+      <geometry>
+        <mesh filename="file://$(find Gazebo_world)/meshes/fork1.stl" />
+      </geometry>
+      <material name="fork_color">
+        <color rgba="0.231373 0.380392 0.705882 1" />
+      </material>
+    </visual>
+    
+    <collision>
+      <origin xyz="-0.015 0 0" rpy="3.14159 0 0" />
+      <geometry>
+        <mesh filename="file://$(find Gazebo_world)/meshes/fork1.stl" />
+      </geometry>
+    </collision>
+  </link>
+  
+  <joint name="lift" type="prismatic">
+    <parent link="body" />
+    <child link="fork" />
+    <origin xyz="0.307004 -2.8844e-16 0.001" rpy="3.14159 0 0" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="-1.75" upper="0.0" />
+    <dynamics friction="0.0" damping="0.0" />
+  </joint>
+  
+  <!-- Gazebo properties for fork -->
+  <gazebo reference="fork">
+    <material>Gazebo/Blue</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  
+  <!-- Carriage -->
+  <link name="carriage">
+    <inertial>
+      <mass value="1.57882" />
+      <origin xyz="-8.35942e-17 0.00139856 0.08" />
+      <inertia ixx="0.00384031" ixy="3.60906e-54" ixz="2.66143e-50" 
+               iyy="0.015562" iyz="0.000168789" izz="0.0119604" />
+    </inertial>
+    
+    <visual>
+      <origin xyz="-7.40575e-17 0.0152514 0" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find Gazebo_world)/meshes/carriage1.stl" />
+      </geometry>
+      <material name="carriage_color">
+        <color rgba="0.917647 0.917647 0.917647 1" />
+      </material>
+    </visual>
+    
+    <collision>
+      <origin xyz="-7.40575e-17 0.0152514 0" rpy="1.5708 1.5708 0" />
+      <geometry>
+        <mesh filename="file://$(find Gazebo_world)/meshes/carriage1.stl" />
+      </geometry>
+    </collision>
+  </link>
+  
+  <joint name="forkSlider" type="prismatic">
+    <parent link="fork" />
+    <child link="carriage" />
+    <origin xyz="0.615 1.27389e-18 -0.015" rpy="1.5708 -4.93295e-18 -1.5708" />
+    <axis xyz="0 0 1" />
+    <limit effort="10" velocity="10" lower="0" upper="0.5" />
+    <dynamics friction="0.0" damping="0.0" />
+  </joint>
+  
+  <!-- Gazebo properties for carriage -->
+  <gazebo reference="carriage">
+    <material>Gazebo/Gray</material>
+    <mu1>1.0</mu1>
+    <mu2>1.0</mu2>
+  </gazebo>
+  
+  <!-- Camera joint -->
+  <joint name="camera_joint" type="fixed">
+    <parent link="fork" />
+    <child link="camera_link" />
+    <origin xyz="0.0 0.0 0.4" rpy="0 0 0" />
+  </joint>
+  
+  <!-- Wheels -->
+  <xacro:wheel name="leftFrontWheel" parent="body" 
+               xyz="0.192004 0.25 0.05" rpy="1.5708 0 0" />
+  <xacro:wheel name="leftBackWheel" parent="body" 
+               xyz="-0.207996 0.25 0.05" rpy="1.5708 0 0" />
+  <xacro:wheel name="rightFrontWheel" parent="body" 
+               xyz="0.192004 -0.25 0.05" rpy="-1.5708 0 0" />
+  <xacro:wheel name="rightBackWheel" parent="body" 
+               xyz="-0.207996 -0.25 0.05" rpy="-1.5708 0 0" />
+  
+  <!-- Sensors and plugins (these go at the bottom of the file) -->
+  <gazebo reference="gps_link">
+    <sensor name="navsat_sensor" type="gps">
+      <always_on>true</always_on>
+      <update_rate>1</update_rate>
+      <gps>
+        <position_sensing>
+          <horizontal>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.00001</stddev>
+            </noise>
+          </horizontal>
+        </position_sensing>
+      </gps>
+    </sensor>
+  </gazebo>
+  
+  <gazebo reference="camera_link">
+    <sensor name="camera" type="camera">
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+        <update_rate>30</update_rate>
+        <topic>camera/image_raw</topic>
+        <gz_frame_id>camera_rgb_frame</gz_frame_id>
+        <camera name="intel_realsense_r200">
+          <camera_info_topic>camera/camera_info</camera_info_topic>
+          <horizontal_fov>1.02974</horizontal_fov>
+          <image>
+            <width>1920</width>
+            <height>1080</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.02</near>
+            <far>300</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <!-- Noise is sampled independently per pixel on each frame.
+                  That pixel's noise value is added to each of its color
+                  channels, which at that point lie in the range [0,1]. -->
+            <mean>0.0</mean>
+            <stddev>0.007</stddev>
+          </noise>
+        </camera>
+      </sensor>
+  </gazebo>
+  
+  <gazebo reference="lidar_frame">
+    <sensor name="hls_lfcd_lds" type="gpu_lidar">
+        <always_on>true</always_on>
+        <visualize>true</visualize>
+        <pose>-0.064 0 0.121 0 0 0</pose>
+        <update_rate>10</update_rate>
+        <topic>scan</topic>
+        <gz_frame_id>lidar_frame</gz_frame_id>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1.000000</resolution>
+              <min_angle>0.000000</min_angle>
+              <max_angle>6.280000</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.120000</min>
+            <max>10.0</max>
+            <resolution>0.015000</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+  </gazebo>
+  
+  <!-- Velocity Control Plugin -->
+<gazebo>
+  <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+    <!-- Left wheels (multiple) -->
+    <!-- <left_joint>leftFrontWheel</left_joint> -->
+    <left_joint>leftBackWheel</left_joint>
+
+    <!-- Right wheels (multiple) -->
+    <!-- <right_joint>rightFrontWheel</right_joint> -->
+    <right_joint>rightBackWheel</right_joint>
+
+    <!-- Kinematic parameters -->
+    <wheel_separation>0.5</wheel_separation>  <!-- Distance between left and right wheels -->
+    <wheel_radius>0.1025</wheel_radius>        <!-- Radius of your wheels -->
+
+    <!-- Command and odometry topics -->
+    <topic>cmd_vel</topic>
+    <odom_topic>odom</odom_topic>
+
+    <!-- Frame IDs -->
+    <frame_id>odom</frame_id>
+    <child_frame_id>base_link</child_frame_id>  <!-- Must match your URDF root -->
+
+    <!-- Publishing rates -->
+    <odom_publisher_frequency>30.0</odom_publisher_frequency>
+
+    <!-- TF publication -->
+    <tf_topic>/tf</tf_topic>
+    <publish_tf>true</publish_tf>  <!-- Ensure TF is published -->
+
+  </plugin>
+</gazebo>
+
+
+  <gazebo>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
+      <update_rate>30.0</update_rate>
+      <frame_name>base_link</frame_name>
+      <joint_name>leftFrontWheel</joint_name>
+      <joint_name>leftBackWheel</joint_name>
+      <joint_name>rightFrontWheel</joint_name>
+      <joint_name>rightBackWheel</joint_name>
+      <joint_name>forkSlider</joint_name>
+      <joint_name>lift</joint_name>
+    </plugin>
+    <plugin filename="gz-sim-sensors-system" 
+            name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+  </gazebo>
+
+</robot>

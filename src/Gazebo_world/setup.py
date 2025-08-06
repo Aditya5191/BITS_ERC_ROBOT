@@ -17,9 +17,11 @@ setup(
 
         # Install launch files
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
+        ('share/' + package_name + '/launch', glob('launch/*.yaml')),
 
         # Install urdf
         ('share/' + package_name + '/urdf/forklift', glob('urdf/forklift/*.urdf.xacro')),
+        ('share/' + package_name + '/urdf', glob('urdf/*.xacro')),
 
         # Install world files (specifically .world files)
         ('share/' + package_name + '/worlds', glob('worlds/*.sdf')),
