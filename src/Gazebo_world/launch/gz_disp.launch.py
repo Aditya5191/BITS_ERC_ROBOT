@@ -1,9 +1,9 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction, SetEnvironmentVariable, SetLaunchConfiguration, OpaqueFunction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 import xacro
@@ -42,7 +42,7 @@ def generate_launch_description():
     
     declare_z_spawn = DeclareLaunchArgument(
         'z_spawn',
-        default_value='0.0',
+        default_value='0.2',
         description='Z position to spawn the robot'
     )
     
@@ -64,10 +64,18 @@ def generate_launch_description():
         description='Yaw orientation to spawn the robot'
     )
     
+    # Add option to use empty world
+    declare_use_empty_world = DeclareLaunchArgument(
+        'use_empty_world',
+        default_value='false',
+        description='Use Gazebo empty world instead of custom world'
+    )
+    
+    # World file is only used if not using empty world
     declare_world_file = DeclareLaunchArgument(
         'world_file',
         default_value='worlds/world_fixed.sdf',
-        description='Path to the world file'
+        description='Path to the world file (only used if use_empty_world is false)'
     )
 
     # Get package share directory
@@ -135,6 +143,19 @@ def generate_launch_description():
         actions=[rviz_node]
     )
     
+    # Function to determine the world file path based on use_empty_world
+    def get_world_file_path(context):
+        use_empty = context.launch_configurations['use_empty_world'] == 'true'
+        if use_empty:
+            return [SetLaunchConfiguration('world_file_path', 'empty.sdf')]
+        else:
+            return [SetLaunchConfiguration('world_file_path', 
+                PathJoinSubstitution([
+                    FindPackageShare('Gazebo_world'),
+                    LaunchConfiguration('world_file')
+                ]).perform(context)
+            )]
+    
     # Create launch description
     ld = LaunchDescription()
     
@@ -148,17 +169,16 @@ def generate_launch_description():
     ld.add_action(declare_roll_spawn)
     ld.add_action(declare_pitch_spawn)
     ld.add_action(declare_yaw_spawn)
+    ld.add_action(declare_use_empty_world)
     ld.add_action(declare_world_file)
+    
+    # Add the world file path configuration
+    ld.add_action(OpaqueFunction(function=get_world_file_path))
     
     # Add robot_state_publisher first - critical for proper initialization
     ld.add_action(robot_state_publisher)
     
     # Launch Gazebo
-    world_file_path = PathJoinSubstitution([
-        FindPackageShare('Gazebo_world'),
-        LaunchConfiguration('world_file')
-    ])
-    
     gazebo_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(
@@ -168,7 +188,7 @@ def generate_launch_description():
             )
         ]),
         launch_arguments={
-            'gz_args': ['-r -v 4 ', world_file_path],
+            'gz_args': ['-r -v 4 ', LaunchConfiguration('world_file_path')],
             'on_exit_shutdown': 'true'
         }.items()
     )
