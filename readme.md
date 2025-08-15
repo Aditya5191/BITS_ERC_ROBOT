@@ -43,3 +43,8 @@ colcon build --packages-select Gazebo_world
 ## TO DO
 - make a launch file
 - make Robot 
+
+
+```bash
+ros2 launch Gazebo_world gz_disp.launch.py use_empty_world:=true
+```
